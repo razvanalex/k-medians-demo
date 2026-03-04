@@ -255,9 +255,9 @@ const ScooterMap = () => {
                 <div className="bg-slate-900 p-8 text-white">
                     <div className="flex justify-between items-start">
                         <div>
-                            <h1 className="text-3xl font-bold tracking-tight mb-2">K-Means Clustering Lab</h1>
+                            <h1 className="text-3xl font-bold tracking-tight mb-2">K-Medians Clustering</h1>
                             <p className="text-slate-400 text-sm max-w-md">
-                                Configure your map by dragging assets. <span className="text-blue-400 font-bold">Reset</span> will now return to your last manual configuration.
+                                Configure your map by dragging assets. <span className="text-blue-400 font-bold">Reset</span> will return to your last manual configuration.
                             </p>
                         </div>
                         <div className="flex flex-col items-end">
