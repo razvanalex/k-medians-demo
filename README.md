@@ -2,10 +2,10 @@
 
 ## 🎯 About
 
-This educational tool demonstrates how the K-Medians algorithm works using a delivery depot scenario. You can:
-- Drag houses and depots to different positions on the grid
+This educational tool demonstrates how the K-Medians clustering algorithm works. You can:
+- Drag data points and centroids to different positions on the grid
 - Step through the algorithm iteration by iteration
-- See how assignments and relocations work in real-time
+- See how cluster assignments and centroid relocations work in real-time
 - Understand Manhattan distance and median calculations
 
 ## 🚀 Live Demo
@@ -32,10 +32,10 @@ npm run deploy
 
 The K-Medians algorithm uses two alternating steps:
 
-1. **Assign**: Each house is assigned to the nearest depot using Manhattan distance (L1 norm)
-2. **Relocate**: Each depot moves to the median position of its assigned houses
+1. **Assign**: Each data point is assigned to the nearest centroid using Manhattan distance (L1 norm)
+2. **Update**: Each centroid moves to the median position of its assigned points
 
-The process repeats until depot positions stabilize (convergence).
+The process repeats until centroid positions stabilize (convergence).
 
 ### Learn More
 

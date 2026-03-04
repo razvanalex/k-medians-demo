@@ -9,33 +9,33 @@ const K_MEANS_COLORS = {
 };
 
 
-const ScooterMap = () => {
+const ClusteringDemo = () => {
     // Initial Hardcoded Defaults
-    const DEFAULT_HOUSES = [
-        { id: 'H1', x: 2, y: 5, cluster: null },
-        { id: 'H2', x: 3, y: 2, cluster: null },
-        { id: 'H3', x: 4, y: 6, cluster: null },
-        { id: 'H4', x: 5, y: 3, cluster: null },
-        { id: 'H5', x: 6, y: 5, cluster: null },
-        { id: 'H6', x: 7, y: 2, cluster: null },
-        { id: 'H7', x: 8, y: 6, cluster: null }
+    const DEFAULT_POINTS = [
+        { id: 'P1', x: 2, y: 5, cluster: null },
+        { id: 'P2', x: 3, y: 2, cluster: null },
+        { id: 'P3', x: 4, y: 6, cluster: null },
+        { id: 'P4', x: 5, y: 3, cluster: null },
+        { id: 'P5', x: 6, y: 5, cluster: null },
+        { id: 'P6', x: 7, y: 2, cluster: null },
+        { id: 'P7', x: 8, y: 6, cluster: null }
     ];
 
-    const DEFAULT_SCOOTERS = [
+    const DEFAULT_CENTROIDS = [
         { id: 'A', x: 2, y: 2, color: K_MEANS_COLORS.A, label: 'Centroid A' },
         { id: 'B', x: 7, y: 6, color: K_MEANS_COLORS.B, label: 'Centroid B' }
     ];
 
 
     // Simulation State
-    const [scooters, setScooters] = useState(DEFAULT_SCOOTERS);
-    const [houses, setHouses] = useState(DEFAULT_HOUSES);
+    const [centroids, setCentroids] = useState(DEFAULT_CENTROIDS);
+    const [points, setPoints] = useState(DEFAULT_POINTS);
     const [step, setStep] = useState(0);
     const [phase, setPhase] = useState('setup'); // setup, assign, update, finished
     // Recovery Point State (to remember the last custom configuration)
     const [lastSetup, setLastSetup] = useState({
-        scooters: DEFAULT_SCOOTERS,
-        houses: DEFAULT_HOUSES
+        centroids: DEFAULT_CENTROIDS,
+        points: DEFAULT_POINTS
     });
 
 
@@ -80,57 +80,57 @@ const ScooterMap = () => {
             // Before starting the algorithm, save the CURRENT state as the recovery point
             // Save with explicit null clusters
             setLastSetup({
-                scooters: scooters.map(s => ({ 
-                    id: s.id, 
-                    x: s.x, 
-                    y: s.y, 
-                    color: s.color, 
-                    label: s.label 
+                centroids: centroids.map(c => ({ 
+                    id: c.id, 
+                    x: c.x, 
+                    y: c.y, 
+                    color: c.color, 
+                    label: c.label 
                 })),
-                houses: houses.map(h => ({ 
-                    id: h.id, 
-                    x: h.x, 
-                    y: h.y, 
+                points: points.map(p => ({ 
+                    id: p.id, 
+                    x: p.x, 
+                    y: p.y, 
                     cluster: null 
                 }))
             });
 
 
             // Perform initial assignment
-            const newHouses = houses.map(house => {
-                const distA = calculateDistance(house, scooters[0]);
-                const distB = calculateDistance(house, scooters[1]);
-                return { ...house, cluster: distA <= distB ? 'A' : 'B' };
+            const newPoints = points.map(point => {
+                const distA = calculateDistance(point, centroids[0]);
+                const distB = calculateDistance(point, centroids[1]);
+                return { ...point, cluster: distA <= distB ? 'A' : 'B' };
             });
-            setHouses(newHouses);
+            setPoints(newPoints);
             setPhase('assign');
         } else if (phase === 'update') {
             // ASSIGN PHASE (Subsequent iterations)
-            const newHouses = houses.map(house => {
-                const distA = calculateDistance(house, scooters[0]);
-                const distB = calculateDistance(house, scooters[1]);
-                return { ...house, cluster: distA <= distB ? 'A' : 'B' };
+            const newPoints = points.map(point => {
+                const distA = calculateDistance(point, centroids[0]);
+                const distB = calculateDistance(point, centroids[1]);
+                return { ...point, cluster: distA <= distB ? 'A' : 'B' };
             });
-            setHouses(newHouses);
+            setPoints(newPoints);
             setPhase('assign');
         } else if (phase === 'assign') {
             // UPDATE PHASE (Move Centroids using Median)
-            const newScooters = scooters.map(scooter => {
-                const assignedHouses = houses.filter(h => h.cluster === scooter.id);
-                if (assignedHouses.length === 0) return scooter;
+            const newCentroids = centroids.map(centroid => {
+                const assignedPoints = points.filter(p => p.cluster === centroid.id);
+                if (assignedPoints.length === 0) return centroid;
 
-                const xCoords = assignedHouses.map(h => h.x);
-                const yCoords = assignedHouses.map(h => h.y);
+                const xCoords = assignedPoints.map(p => p.x);
+                const yCoords = assignedPoints.map(p => p.y);
 
                 const medianX = calculateMedian(xCoords);
                 const medianY = calculateMedian(yCoords);
 
-                return { ...scooter, x: medianX, y: medianY };
+                return { ...centroid, x: medianX, y: medianY };
             });
 
 
-            const hasChanged = newScooters.some((s, i) => s.x !== scooters[i].x || s.y !== scooters[i].y);
-            setScooters(newScooters);
+            const hasChanged = newCentroids.some((c, i) => c.x !== centroids[i].x || c.y !== centroids[i].y);
+            setCentroids(newCentroids);
             setStep(s => s + 1);
             setPhase(hasChanged ? 'update' : 'finished');
         }
@@ -140,22 +140,22 @@ const ScooterMap = () => {
     const resetToLastSetup = () => {
         // Reverts to the configuration set before clicking "Start"
         // Create completely fresh copies to avoid any reference issues
-        const freshScooters = lastSetup.scooters.map(s => ({ 
-            id: s.id, 
-            x: s.x, 
-            y: s.y, 
-            color: s.color, 
-            label: s.label 
+        const freshCentroids = lastSetup.centroids.map(c => ({ 
+            id: c.id, 
+            x: c.x, 
+            y: c.y, 
+            color: c.color, 
+            label: c.label 
         }));
-        const freshHouses = lastSetup.houses.map(h => ({ 
-            id: h.id, 
-            x: h.x, 
-            y: h.y, 
+        const freshPoints = lastSetup.points.map(p => ({ 
+            id: p.id, 
+            x: p.x, 
+            y: p.y, 
             cluster: null  // Explicitly reset cluster assignment
         }));
         
-        setScooters(freshScooters);
-        setHouses(freshHouses);
+        setCentroids(freshCentroids);
+        setPoints(freshPoints);
         setStep(0);
         setPhase('setup');
     };
@@ -164,79 +164,79 @@ const ScooterMap = () => {
     const factoryReset = () => {
         // Reverts to the original hardcoded defaults
         // Create completely fresh copies
-        const freshScooters = DEFAULT_SCOOTERS.map(s => ({ 
-            id: s.id, 
-            x: s.x, 
-            y: s.y, 
-            color: s.color, 
-            label: s.label 
+        const freshCentroids = DEFAULT_CENTROIDS.map(c => ({ 
+            id: c.id, 
+            x: c.x, 
+            y: c.y, 
+            color: c.color, 
+            label: c.label 
         }));
-        const freshHouses = DEFAULT_HOUSES.map(h => ({ 
-            id: h.id, 
-            x: h.x, 
-            y: h.y, 
+        const freshPoints = DEFAULT_POINTS.map(p => ({ 
+            id: p.id, 
+            x: p.x, 
+            y: p.y, 
             cluster: null 
         }));
         
-        setScooters(freshScooters);
-        setHouses(freshHouses);
+        setCentroids(freshCentroids);
+        setPoints(freshPoints);
         setLastSetup({ 
-            scooters: freshScooters.map(s => ({ ...s })), 
-            houses: freshHouses.map(h => ({ ...h })) 
+            centroids: freshCentroids.map(c => ({ ...c })), 
+            points: freshPoints.map(p => ({ ...p })) 
         });
         setStep(0);
         setPhase('setup');
     };
 
-    const addHouse = () => {
+    const addPoint = () => {
         if (phase === 'setup') {
-            const nextNum = Math.max(...houses.map(h => parseInt(h.id.substring(1))), 0) + 1;
-            const newId = `H${nextNum}`;
-            const newHouse = { id: newId, x: 7, y: 5, cluster: null };
-            const updatedHouses = [...houses, newHouse];
-            setHouses(updatedHouses);
+            const nextNum = Math.max(...points.map(p => parseInt(p.id.substring(1))), 0) + 1;
+            const newId = `P${nextNum}`;
+            const newPoint = { id: newId, x: 7, y: 5, cluster: null };
+            const updatedPoints = [...points, newPoint];
+            setPoints(updatedPoints);
             setLastSetup({
                 ...lastSetup,
-                houses: updatedHouses
+                points: updatedPoints
             });
         }
     };
 
-    const removeHouse = (id) => {
-        if (phase === 'setup' && houses.length > 1) {
-            const updatedHouses = houses.filter(h => h.id !== id);
-            setHouses(updatedHouses);
+    const removePoint = (id) => {
+        if (phase === 'setup' && points.length > 1) {
+            const updatedPoints = points.filter(p => p.id !== id);
+            setPoints(updatedPoints);
             setLastSetup({
                 ...lastSetup,
-                houses: updatedHouses
+                points: updatedPoints
             });
         }
     };
 
-    const updateHouseCoordinate = (id, axis, value) => {
-        if (phase === 'setup') {
-            const newValue = Math.max(0, Math.min(axis === 'x' ? maxX : maxY, parseInt(value) || 0));
-            const updatedHouses = houses.map(h =>
-                h.id === id ? { ...h, [axis]: newValue } : h
-            );
-            setHouses(updatedHouses);
-            setLastSetup({
-                ...lastSetup,
-                houses: updatedHouses.map(h => ({ ...h, cluster: null }))
-            });
-        }
-    };
-
-    const updateScooterCoordinate = (id, axis, value) => {
+    const updatePointCoordinate = (id, axis, value) => {
         if (phase === 'setup') {
             const newValue = Math.max(0, Math.min(axis === 'x' ? maxX : maxY, parseInt(value) || 0));
-            const updatedScooters = scooters.map(s =>
-                s.id === id ? { ...s, [axis]: newValue } : s
+            const updatedPoints = points.map(p =>
+                p.id === id ? { ...p, [axis]: newValue } : p
             );
-            setScooters(updatedScooters);
+            setPoints(updatedPoints);
             setLastSetup({
                 ...lastSetup,
-                scooters: updatedScooters
+                points: updatedPoints.map(p => ({ ...p, cluster: null }))
+            });
+        }
+    };
+
+    const updateCentroidCoordinate = (id, axis, value) => {
+        if (phase === 'setup') {
+            const newValue = Math.max(0, Math.min(axis === 'x' ? maxX : maxY, parseInt(value) || 0));
+            const updatedCentroids = centroids.map(c =>
+                c.id === id ? { ...c, [axis]: newValue } : c
+            );
+            setCentroids(updatedCentroids);
+            setLastSetup({
+                ...lastSetup,
+                centroids: updatedCentroids
             });
         }
     };
@@ -255,25 +255,25 @@ const ScooterMap = () => {
             const gridY = Math.max(0, Math.min(maxY, fromY(mouseY)));
 
 
-            if (draggedItem.type === 'scooter') {
-                setScooters(prev => {
-                    const updated = prev.map(s =>
-                        s.id === draggedItem.id ? { ...s, x: gridX, y: gridY } : s
+            if (draggedItem.type === 'centroid') {
+                setCentroids(prev => {
+                    const updated = prev.map(c =>
+                        c.id === draggedItem.id ? { ...c, x: gridX, y: gridY } : c
                     );
                     setLastSetup(last => ({
                         ...last,
-                        scooters: updated.map(s => ({ ...s }))
+                        centroids: updated.map(c => ({ ...c }))
                     }));
                     return updated;
                 });
-            } else if (draggedItem.type === 'house') {
-                setHouses(prev => {
-                    const updated = prev.map(h =>
-                        h.id === draggedItem.id ? { ...h, x: gridX, y: gridY } : h
+            } else if (draggedItem.type === 'point') {
+                setPoints(prev => {
+                    const updated = prev.map(p =>
+                        p.id === draggedItem.id ? { ...p, x: gridX, y: gridY } : p
                     );
                     setLastSetup(last => ({
                         ...last,
-                        houses: updated.map(h => ({ ...h, cluster: null }))
+                        points: updated.map(p => ({ ...p, cluster: null }))
                     }));
                     return updated;
                 });
@@ -310,7 +310,7 @@ const ScooterMap = () => {
                         <div className="flex-1">
                             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-2">K-Medians Clustering</h1>
                             <p className="text-slate-400 text-xs sm:text-sm max-w-md">
-                                Configure your map by dragging assets. <span className="text-blue-400 font-bold">Reset</span> will return to your last manual configuration.
+                                Drag points and centroids to configure the visualization. <span className="text-blue-400 font-bold">Reset</span> will return to your last configuration.
                             </p>
                         </div>
                         <div className="flex flex-col items-start sm:items-end">
@@ -347,17 +347,17 @@ const ScooterMap = () => {
 
 
                             {/* Cluster Connections */}
-                            {phase !== 'setup' && houses.map((h, i) => {
-                                const targetScooter = scooters.find(s => s.id === h.cluster);
-                                if (!targetScooter) return null;
+                            {phase !== 'setup' && points.map((p, i) => {
+                                const targetCentroid = centroids.find(c => c.id === p.cluster);
+                                if (!targetCentroid) return null;
                                 return (
                                     <line
                                         key={`link-${i}`}
-                                        x1={getX(h.x)}
-                                        y1={getY(h.y)}
-                                        x2={getX(targetScooter.x)}
-                                        y2={getY(targetScooter.y)}
-                                        stroke={targetScooter.color}
+                                        x1={getX(p.x)}
+                                        y1={getY(p.y)}
+                                        x2={getX(targetCentroid.x)}
+                                        y2={getY(targetCentroid.y)}
+                                        stroke={targetCentroid.color}
                                         strokeWidth="5"
                                         strokeDasharray="10 10"
                                         className="opacity-30 transition-all duration-500"
@@ -366,45 +366,46 @@ const ScooterMap = () => {
                             })}
 
 
-                            {/* Houses */}
-                            {houses.map((h) => (
+                            {/* Data Points */}
+                            {points.map((p) => (
                                 <g
-                                    key={h.id}
+                                    key={p.id}
                                     className={`${phase === 'setup' ? 'cursor-grab active:cursor-grabbing' : ''}`}
-                                    onMouseDown={() => phase === 'setup' && setDraggedItem({ type: 'house', id: h.id })}
-                                    onTouchStart={() => phase === 'setup' && setDraggedItem({ type: 'house', id: h.id })}
+                                    onMouseDown={() => phase === 'setup' && setDraggedItem({ type: 'point', id: p.id })}
+                                    onTouchStart={() => phase === 'setup' && setDraggedItem({ type: 'point', id: p.id })}
                                 >
-                                    <rect x={getX(h.x) - 15} y={getY(h.y) - 15} width="60" height="60" fill="transparent" />
-                                    <path
-                                        d={`M ${getX(h.x) - 20} ${getY(h.y)} L ${getX(h.x)} ${getY(h.y) - 20} L ${getX(h.x) + 20} ${getY(h.y)} L ${getX(h.x) + 20} ${getY(h.y) + 16} L ${getX(h.x) - 20} ${getY(h.y) + 16} Z`}
-                                        fill={h.cluster ? K_MEANS_COLORS[h.cluster] : K_MEANS_COLORS.Unassigned}
+                                    <circle 
+                                        cx={getX(p.x)} 
+                                        cy={getY(p.y)} 
+                                        r="20" 
+                                        fill={p.cluster ? K_MEANS_COLORS[p.cluster] : K_MEANS_COLORS.Unassigned}
                                         className="transition-colors duration-500 shadow-sm"
                                     />
-                                    <text x={getX(h.x)} y={getY(h.y) + 35} textAnchor="middle" className="text-[11px] font-bold fill-slate-400 pointer-events-none">{h.id}</text>
+                                    <text x={getX(p.x)} y={getY(p.y) + 35} textAnchor="middle" className="text-[11px] font-bold fill-slate-400 pointer-events-none">{p.id}</text>
                                 </g>
                             ))}
 
 
-                            {/* Scooters */}
-                            {scooters.map((s) => (
+                            {/* Centroids */}
+                            {centroids.map((c) => (
                                 <g
-                                    key={s.id}
+                                    key={c.id}
                                     className={`${phase === 'setup' ? 'cursor-grab active:cursor-grabbing' : ''}`}
-                                    onMouseDown={() => phase === 'setup' && setDraggedItem({ type: 'scooter', id: s.id })}
-                                    onTouchStart={() => phase === 'setup' && setDraggedItem({ type: 'scooter', id: s.id })}
+                                    onMouseDown={() => phase === 'setup' && setDraggedItem({ type: 'centroid', id: c.id })}
+                                    onTouchStart={() => phase === 'setup' && setDraggedItem({ type: 'centroid', id: c.id })}
                                 >
-                                    <circle cx={getX(s.x)} cy={getY(s.y)} r="30" fill={s.color} className="opacity-10" />
+                                    <circle cx={getX(c.x)} cy={getY(c.y)} r="30" fill={c.color} className="opacity-10" />
                                     <circle
-                                        cx={getX(s.x)}
-                                        cy={getY(s.y)}
+                                        cx={getX(c.x)}
+                                        cy={getY(c.y)}
                                         r="15"
-                                        fill={s.color}
+                                        fill={c.color}
                                         stroke="white"
                                         strokeWidth="3"
                                         className="shadow-md"
                                     />
-                                    <text x={getX(s.x)} y={getY(s.y) - 35} textAnchor="middle" className="text-[14px] font-black fill-slate-800 tracking-tighter pointer-events-none">
-                                        {s.id}
+                                    <text x={getX(c.x)} y={getY(c.y) - 35} textAnchor="middle" className="text-[14px] font-black fill-slate-800 tracking-tighter pointer-events-none">
+                                        {c.id}
                                     </text>
                                 </g>
                             ))}
@@ -461,11 +462,11 @@ const ScooterMap = () => {
                             <div className="mt-6 sm:mt-8">
                                 <div className="text-[10px] font-bold text-slate-400 uppercase mb-3 sm:mb-4 tracking-wider">Coordinates</div>
                                 <div className="max-h-60 sm:max-h-80 overflow-y-auto pr-2 space-y-2 custom-scrollbar">
-                                    {scooters.map(s => (
-                                        <div key={s.id} className="p-2 sm:p-3 bg-white rounded-xl border border-slate-200 text-xs shadow-sm">
+                                    {centroids.map(c => (
+                                        <div key={c.id} className="p-2 sm:p-3 bg-white rounded-xl border border-slate-200 text-xs shadow-sm">
                                             <div className="flex items-center gap-2 font-bold mb-2">
-                                                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: s.color }}></div>
-                                                Centroid {s.id}
+                                                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: c.color }}></div>
+                                                Centroid {c.id}
                                             </div>
                                             <div className="flex gap-2">
                                                 <div className="flex-1">
@@ -474,8 +475,8 @@ const ScooterMap = () => {
                                                         type="number"
                                                         min="0"
                                                         max={maxX}
-                                                        value={s.x}
-                                                        onChange={(e) => updateScooterCoordinate(s.id, 'x', e.target.value)}
+                                                        value={c.x}
+                                                        onChange={(e) => updateCentroidCoordinate(c.id, 'x', e.target.value)}
                                                         disabled={phase !== 'setup'}
                                                         className="w-full px-2 py-1 border border-slate-300 rounded text-xs font-mono disabled:bg-slate-100 disabled:cursor-not-allowed"
                                                     />
@@ -486,8 +487,8 @@ const ScooterMap = () => {
                                                         type="number"
                                                         min="0"
                                                         max={maxY}
-                                                        value={s.y}
-                                                        onChange={(e) => updateScooterCoordinate(s.id, 'y', e.target.value)}
+                                                        value={c.y}
+                                                        onChange={(e) => updateCentroidCoordinate(c.id, 'y', e.target.value)}
                                                         disabled={phase !== 'setup'}
                                                         className="w-full px-2 py-1 border border-slate-300 rounded text-xs font-mono disabled:bg-slate-100 disabled:cursor-not-allowed"
                                                     />
@@ -495,15 +496,15 @@ const ScooterMap = () => {
                                             </div>
                                         </div>
                                     ))}
-                                    {houses.map(h => (
-                                        <div key={h.id} className="p-2 sm:p-3 bg-white rounded-xl border border-slate-200 text-xs shadow-sm">
+                                    {points.map(p => (
+                                        <div key={p.id} className="p-2 sm:p-3 bg-white rounded-xl border border-slate-200 text-xs shadow-sm">
                                             <div className="flex items-center justify-between gap-2 mb-2">
-                                                <span className="font-medium text-slate-600">{h.id}</span>
-                                                {phase === 'setup' && houses.length > 1 && (
+                                                <span className="font-medium text-slate-600">{p.id}</span>
+                                                {phase === 'setup' && points.length > 1 && (
                                                     <button
-                                                        onClick={() => removeHouse(h.id)}
+                                                        onClick={() => removePoint(p.id)}
                                                         className="p-1 hover:bg-red-50 text-red-500 rounded transition-colors"
-                                                        title="Remove house"
+                                                        title="Remove point"
                                                     >
                                                         <Minus size={14} />
                                                     </button>
@@ -516,8 +517,8 @@ const ScooterMap = () => {
                                                         type="number"
                                                         min="0"
                                                         max={maxX}
-                                                        value={h.x}
-                                                        onChange={(e) => updateHouseCoordinate(h.id, 'x', e.target.value)}
+                                                        value={p.x}
+                                                        onChange={(e) => updatePointCoordinate(p.id, 'x', e.target.value)}
                                                         disabled={phase !== 'setup'}
                                                         className="w-full px-2 py-1 border border-slate-300 rounded text-xs font-mono disabled:bg-slate-100 disabled:cursor-not-allowed"
                                                     />
@@ -528,8 +529,8 @@ const ScooterMap = () => {
                                                         type="number"
                                                         min="0"
                                                         max={maxY}
-                                                        value={h.y}
-                                                        onChange={(e) => updateHouseCoordinate(h.id, 'y', e.target.value)}
+                                                        value={p.y}
+                                                        onChange={(e) => updatePointCoordinate(p.id, 'y', e.target.value)}
                                                         disabled={phase !== 'setup'}
                                                         className="w-full px-2 py-1 border border-slate-300 rounded text-xs font-mono disabled:bg-slate-100 disabled:cursor-not-allowed"
                                                     />
@@ -540,11 +541,11 @@ const ScooterMap = () => {
                                 </div>
                                 {phase === 'setup' && (
                                     <button
-                                        onClick={addHouse}
+                                        onClick={addPoint}
                                         className="w-full mt-3 py-2 rounded-lg font-bold text-blue-600 bg-blue-50 border border-blue-200 hover:bg-blue-100 transition-colors flex items-center justify-center gap-2"
                                     >
                                         <Plus size={16} />
-                                        Add House
+                                        Add Point
                                     </button>
                                 )}
                             </div>
@@ -555,7 +556,7 @@ const ScooterMap = () => {
                             <div className="p-3 sm:p-4 rounded-2xl bg-slate-900 text-white shadow-xl">
                                 <div className="text-[10px] font-bold text-slate-500 uppercase mb-1">Status</div>
                                 <p className="text-[10px] sm:text-[11px] italic leading-relaxed text-slate-300">
-                                    {phase === 'setup' && "Drag assets to set up a scenario, then press Initialize."}
+                                    {phase === 'setup' && "Drag points and centroids to configure, then press Initialize."}
                                     {phase === 'assign' && "Points assigned. Next: Move centroids to the median coordinates."}
                                     {phase === 'update' && "Centroids moved. Next: Re-assign points."}
                                     {phase === 'finished' && "Optimal clustering reached."}
@@ -571,6 +572,6 @@ const ScooterMap = () => {
 
 
 export default function App() {
-    return <ScooterMap />;
+    return <ClusteringDemo />;
 }
 
