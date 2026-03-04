@@ -8,26 +8,26 @@ const K_MEANS_COLORS = {
     Unassigned: '#94a3b8' // Slate
 };
 
+const DEFAULT_POINTS = [
+    { id: 'P1', x: 2, y: 5, cluster: null },
+    { id: 'P2', x: 3, y: 2, cluster: null },
+    { id: 'P3', x: 4, y: 6, cluster: null },
+    { id: 'P4', x: 5, y: 3, cluster: null },
+    { id: 'P5', x: 6, y: 5, cluster: null },
+    { id: 'P6', x: 7, y: 2, cluster: null },
+    { id: 'P7', x: 8, y: 6, cluster: null },
+    { id: 'P8', x: 4, y: 4, cluster: null },
+    { id: 'P9', x: 3, y: 4, cluster: null },
+    { id: 'P10', x: 5, y: 5, cluster: null }
+];
+
+const DEFAULT_CENTROIDS = [
+    { id: 'A', x: 2, y: 2, color: K_MEANS_COLORS.A, label: 'Centroid A' },
+    { id: 'B', x: 7, y: 6, color: K_MEANS_COLORS.B, label: 'Centroid B' }
+];
+
 
 const ClusteringDemo = () => {
-    // Initial Hardcoded Defaults
-    const DEFAULT_POINTS = [
-        { id: 'P1', x: 2, y: 5, cluster: null },
-        { id: 'P2', x: 3, y: 2, cluster: null },
-        { id: 'P3', x: 4, y: 6, cluster: null },
-        { id: 'P4', x: 5, y: 3, cluster: null },
-        { id: 'P5', x: 6, y: 5, cluster: null },
-        { id: 'P6', x: 7, y: 2, cluster: null },
-        { id: 'P7', x: 8, y: 6, cluster: null },
-        { id: 'P8', x: 4, y: 4, cluster: null },
-        { id: 'P9', x: 3, y: 4, cluster: null },
-        { id: 'P10', x: 5, y: 5, cluster: null }
-    ];
-
-    const DEFAULT_CENTROIDS = [
-        { id: 'A', x: 2, y: 2, color: K_MEANS_COLORS.A, label: 'Centroid A' },
-        { id: 'B', x: 7, y: 6, color: K_MEANS_COLORS.B, label: 'Centroid B' }
-    ];
 
 
     // Simulation State
@@ -306,16 +306,18 @@ const ClusteringDemo = () => {
     };
 
 
+    const isDark = isDarkMode;
     const gridLines = useMemo(() => {
+        const gridColor = isDark ? '#1e293b' : '#f1f5f9';
         const lines = [];
         for (let i = 0; i <= maxX; i++) {
-            lines.push(<line key={`v-${i}`} x1={getX(i)} y1={getY(0)} x2={getX(i)} y2={getY(maxY)} stroke="#f1f5f9" strokeWidth="1" />);
+            lines.push(<line key={`v-${i}`} x1={getX(i)} y1={getY(0)} x2={getX(i)} y2={getY(maxY)} stroke={gridColor} strokeWidth="1" />);
         }
         for (let i = 0; i <= maxY; i++) {
-            lines.push(<line key={`h-${i}`} x1={getX(0)} y1={getY(i)} x2={getX(maxX)} y2={getY(i)} stroke="#f1f5f9" strokeWidth="1" />);
+            lines.push(<line key={`h-${i}`} x1={getX(0)} y1={getY(i)} x2={getX(maxX)} y2={getY(i)} stroke={gridColor} strokeWidth="1" />);
         }
         return lines;
-    }, []);
+    }, [isDark]);
 
 
     return (
@@ -430,7 +432,7 @@ const ClusteringDemo = () => {
                                         strokeWidth="3"
                                         className="shadow-md"
                                     />
-                                    <text x={getX(c.x)} y={getY(c.y) - 35} textAnchor="middle" className="text-[14px] font-black fill-slate-800 tracking-tighter pointer-events-none">
+                                    <text x={getX(c.x)} y={getY(c.y) - 35} textAnchor="middle" fill={isDarkMode ? '#e2e8f0' : '#1e293b'} className="text-[14px] font-black tracking-tighter pointer-events-none">
                                         {c.id}
                                     </text>
                                 </g>
