@@ -18,7 +18,10 @@ const ClusteringDemo = () => {
         { id: 'P4', x: 5, y: 3, cluster: null },
         { id: 'P5', x: 6, y: 5, cluster: null },
         { id: 'P6', x: 7, y: 2, cluster: null },
-        { id: 'P7', x: 8, y: 6, cluster: null }
+        { id: 'P7', x: 8, y: 6, cluster: null },
+        { id: 'P8', x: 4, y: 4, cluster: null },
+        { id: 'P9', x: 3, y: 4, cluster: null },
+        { id: 'P10', x: 5, y: 5, cluster: null }
     ];
 
     const DEFAULT_CENTROIDS = [
@@ -80,18 +83,18 @@ const ClusteringDemo = () => {
             // Before starting the algorithm, save the CURRENT state as the recovery point
             // Save with explicit null clusters
             setLastSetup({
-                centroids: centroids.map(c => ({ 
-                    id: c.id, 
-                    x: c.x, 
-                    y: c.y, 
-                    color: c.color, 
-                    label: c.label 
+                centroids: centroids.map(c => ({
+                    id: c.id,
+                    x: c.x,
+                    y: c.y,
+                    color: c.color,
+                    label: c.label
                 })),
-                points: points.map(p => ({ 
-                    id: p.id, 
-                    x: p.x, 
-                    y: p.y, 
-                    cluster: null 
+                points: points.map(p => ({
+                    id: p.id,
+                    x: p.x,
+                    y: p.y,
+                    cluster: null
                 }))
             });
 
@@ -140,20 +143,20 @@ const ClusteringDemo = () => {
     const resetToLastSetup = () => {
         // Reverts to the configuration set before clicking "Start"
         // Create completely fresh copies to avoid any reference issues
-        const freshCentroids = lastSetup.centroids.map(c => ({ 
-            id: c.id, 
-            x: c.x, 
-            y: c.y, 
-            color: c.color, 
-            label: c.label 
+        const freshCentroids = lastSetup.centroids.map(c => ({
+            id: c.id,
+            x: c.x,
+            y: c.y,
+            color: c.color,
+            label: c.label
         }));
-        const freshPoints = lastSetup.points.map(p => ({ 
-            id: p.id, 
-            x: p.x, 
-            y: p.y, 
+        const freshPoints = lastSetup.points.map(p => ({
+            id: p.id,
+            x: p.x,
+            y: p.y,
             cluster: null  // Explicitly reset cluster assignment
         }));
-        
+
         setCentroids(freshCentroids);
         setPoints(freshPoints);
         setStep(0);
@@ -164,25 +167,25 @@ const ClusteringDemo = () => {
     const factoryReset = () => {
         // Reverts to the original hardcoded defaults
         // Create completely fresh copies
-        const freshCentroids = DEFAULT_CENTROIDS.map(c => ({ 
-            id: c.id, 
-            x: c.x, 
-            y: c.y, 
-            color: c.color, 
-            label: c.label 
+        const freshCentroids = DEFAULT_CENTROIDS.map(c => ({
+            id: c.id,
+            x: c.x,
+            y: c.y,
+            color: c.color,
+            label: c.label
         }));
-        const freshPoints = DEFAULT_POINTS.map(p => ({ 
-            id: p.id, 
-            x: p.x, 
-            y: p.y, 
-            cluster: null 
+        const freshPoints = DEFAULT_POINTS.map(p => ({
+            id: p.id,
+            x: p.x,
+            y: p.y,
+            cluster: null
         }));
-        
+
         setCentroids(freshCentroids);
         setPoints(freshPoints);
-        setLastSetup({ 
-            centroids: freshCentroids.map(c => ({ ...c })), 
-            points: freshPoints.map(p => ({ ...p })) 
+        setLastSetup({
+            centroids: freshCentroids.map(c => ({ ...c })),
+            points: freshPoints.map(p => ({ ...p }))
         });
         setStep(0);
         setPhase('setup');
@@ -374,10 +377,10 @@ const ClusteringDemo = () => {
                                     onMouseDown={() => phase === 'setup' && setDraggedItem({ type: 'point', id: p.id })}
                                     onTouchStart={() => phase === 'setup' && setDraggedItem({ type: 'point', id: p.id })}
                                 >
-                                    <circle 
-                                        cx={getX(p.x)} 
-                                        cy={getY(p.y)} 
-                                        r="20" 
+                                    <circle
+                                        cx={getX(p.x)}
+                                        cy={getY(p.y)}
+                                        r="20"
                                         fill={p.cluster ? K_MEANS_COLORS[p.cluster] : K_MEANS_COLORS.Unassigned}
                                         className="transition-colors duration-500 shadow-sm"
                                     />
