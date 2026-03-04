@@ -23,7 +23,7 @@ const ScooterMap = () => {
 
     const DEFAULT_SCOOTERS = [
         { id: 'A', x: 2, y: 2, color: K_MEANS_COLORS.A, label: 'Centroid A' },
-        { id: 'B', x: 7, y: 6, color: K_MEANS_COLORS.B, label: 'Centroid B' }
+        { id: 'B', x: 1, y: 4, color: K_MEANS_COLORS.B, label: 'Centroid B' }
     ];
 
 
@@ -127,7 +127,7 @@ const ScooterMap = () => {
 
     const resetToLastSetup = () => {
         // Reverts to the configuration set before clicking "Start"
-        setScooters(lastSetup.scooters);
+        setScooters(lastSetup.scooters.map(s => ({ ...s })));
         // Remove clustering info but keep positions
         setHouses(lastSetup.houses.map(h => ({ ...h, cluster: null })));
         setStep(0);
@@ -137,9 +137,12 @@ const ScooterMap = () => {
 
     const factoryReset = () => {
         // Reverts to the original hardcoded defaults
-        setScooters(DEFAULT_SCOOTERS);
-        setHouses(DEFAULT_HOUSES);
-        setLastSetup({ scooters: DEFAULT_SCOOTERS, houses: DEFAULT_HOUSES });
+        setScooters(DEFAULT_SCOOTERS.map(s => ({ ...s })));
+        setHouses(DEFAULT_HOUSES.map(h => ({ ...h, cluster: null })));
+        setLastSetup({ 
+            scooters: DEFAULT_SCOOTERS.map(s => ({ ...s })), 
+            houses: DEFAULT_HOUSES.map(h => ({ ...h, cluster: null })) 
+        });
         setStep(0);
         setPhase('setup');
     };
