@@ -202,8 +202,10 @@ const ScooterMap = () => {
         if (draggedItem && phase === 'setup') {
             const svg = e.currentTarget;
             const CTM = svg.getScreenCTM();
-            const mouseX = (e.clientX - CTM.e) / CTM.a;
-            const mouseY = (e.clientY - CTM.f) / CTM.d;
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            const mouseX = (clientX - CTM.e) / CTM.a;
+            const mouseY = (clientY - CTM.f) / CTM.d;
 
             const gridX = Math.max(0, Math.min(maxX, fromX(mouseX)));
             const gridY = Math.max(0, Math.min(maxY, fromY(mouseY)));
@@ -235,6 +237,13 @@ const ScooterMap = () => {
         }
     };
 
+    const handleTouchMove = (e) => {
+        if (draggedItem && phase === 'setup') {
+            e.preventDefault();
+            handleMouseMove(e);
+        }
+    };
+
 
     const gridLines = useMemo(() => {
         const lines = [];
@@ -249,20 +258,20 @@ const ScooterMap = () => {
 
 
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-slate-100 p-4 font-sans">
-            <div className="w-full bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-200">
+        <div className="flex flex-col min-h-screen bg-slate-100 font-sans">
+            <div className="w-full max-w-7xl mx-auto bg-white sm:rounded-3xl shadow-2xl overflow-hidden border-0 sm:border sm:border-slate-200 sm:my-4">
                 {/* Header */}
-                <div className="bg-slate-900 p-8 text-white">
-                    <div className="flex justify-between items-start">
-                        <div>
-                            <h1 className="text-3xl font-bold tracking-tight mb-2">K-Medians Clustering</h1>
-                            <p className="text-slate-400 text-sm max-w-md">
+                <div className="bg-slate-900 p-4 sm:p-6 md:p-8 text-white">
+                    <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+                        <div className="flex-1">
+                            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-2">K-Medians Clustering</h1>
+                            <p className="text-slate-400 text-xs sm:text-sm max-w-md">
                                 Configure your map by dragging assets. <span className="text-blue-400 font-bold">Reset</span> will return to your last manual configuration.
                             </p>
                         </div>
-                        <div className="flex flex-col items-end">
+                        <div className="flex flex-col items-start sm:items-end">
                             <span className="text-xs uppercase tracking-widest text-slate-500 font-bold mb-1">Iteration</span>
-                            <span className="text-4xl font-black text-blue-500">{step}</span>
+                            <span className="text-3xl sm:text-4xl font-black text-blue-500">{step}</span>
                         </div>
                     </div>
                 </div>
@@ -271,21 +280,24 @@ const ScooterMap = () => {
                 {/* Main Interface */}
                 <div className="flex flex-col lg:flex-row">
                     {/* Map View */}
-                    <div className="flex-1 p-6 bg-white relative">
-                        <div className="absolute top-8 left-10 z-10 flex flex-col gap-2">
-                            <div className="bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-full border border-slate-200 text-[10px] font-bold text-slate-500 flex items-center gap-2 shadow-sm">
-                                <Info size={12} className="text-blue-500" />
-                                {phase === 'setup' ? "DRAG MODE: Ready to Start" : `LOCKED: Phase ${phase.toUpperCase()}`}
+                    <div className="flex-1 p-4 sm:p-6 bg-white relative min-h-[400px] sm:min-h-[500px]">
+                        <div className="absolute top-4 sm:top-8 left-4 sm:left-10 z-10 flex flex-col gap-2">
+                            <div className="bg-white/90 backdrop-blur-md px-2 sm:px-3 py-1 sm:py-1.5 rounded-full border border-slate-200 text-[9px] sm:text-[10px] font-bold text-slate-500 flex items-center gap-1 sm:gap-2 shadow-sm">
+                                <Info size={10} className="text-blue-500 sm:w-3 sm:h-3" />
+                                <span className="hidden sm:inline">{phase === 'setup' ? "DRAG MODE: Ready to Start" : `LOCKED: Phase ${phase.toUpperCase()}`}</span>
+                                <span className="sm:hidden">{phase === 'setup' ? "DRAG MODE" : phase.toUpperCase()}</span>
                             </div>
                         </div>
 
 
                         <svg
                             viewBox={`0 0 ${width} ${height}`}
-                            className="w-full h-auto drop-shadow-sm select-none"
+                            className="w-full h-auto drop-shadow-sm select-none touch-none"
                             onMouseMove={handleMouseMove}
                             onMouseUp={() => setDraggedItem(null)}
                             onMouseLeave={() => setDraggedItem(null)}
+                            onTouchMove={handleTouchMove}
+                            onTouchEnd={() => setDraggedItem(null)}
                         >
                             {gridLines}
 
@@ -316,6 +328,7 @@ const ScooterMap = () => {
                                     key={h.id}
                                     className={`${phase === 'setup' ? 'cursor-grab active:cursor-grabbing' : ''}`}
                                     onMouseDown={() => phase === 'setup' && setDraggedItem({ type: 'house', id: h.id })}
+                                    onTouchStart={() => phase === 'setup' && setDraggedItem({ type: 'house', id: h.id })}
                                 >
                                     <rect x={getX(h.x) - 15} y={getY(h.y) - 15} width="60" height="60" fill="transparent" />
                                     <path
@@ -323,7 +336,7 @@ const ScooterMap = () => {
                                         fill={h.cluster ? K_MEANS_COLORS[h.cluster] : K_MEANS_COLORS.Unassigned}
                                         className="transition-colors duration-500 shadow-sm"
                                     />
-                                    <text x={getX(h.x)} y={getY(h.y) + 35} textAnchor="middle" className="text-[11px] font-bold fill-slate-400">{h.id}</text>
+                                    <text x={getX(h.x)} y={getY(h.y) + 35} textAnchor="middle" className="text-[11px] font-bold fill-slate-400 pointer-events-none">{h.id}</text>
                                 </g>
                             ))}
 
@@ -334,6 +347,7 @@ const ScooterMap = () => {
                                     key={s.id}
                                     className={`${phase === 'setup' ? 'cursor-grab active:cursor-grabbing' : ''}`}
                                     onMouseDown={() => phase === 'setup' && setDraggedItem({ type: 'scooter', id: s.id })}
+                                    onTouchStart={() => phase === 'setup' && setDraggedItem({ type: 'scooter', id: s.id })}
                                 >
                                     <circle cx={getX(s.x)} cy={getY(s.y)} r="30" fill={s.color} className="opacity-10" />
                                     <circle
@@ -345,7 +359,7 @@ const ScooterMap = () => {
                                         strokeWidth="3"
                                         className="shadow-md"
                                     />
-                                    <text x={getX(s.x)} y={getY(s.y) - 35} textAnchor="middle" className="text-[14px] font-black fill-slate-800 tracking-tighter">
+                                    <text x={getX(s.x)} y={getY(s.y) - 35} textAnchor="middle" className="text-[14px] font-black fill-slate-800 tracking-tighter pointer-events-none">
                                         {s.id}
                                     </text>
                                 </g>
@@ -355,17 +369,17 @@ const ScooterMap = () => {
 
 
                     {/* Controls Panel */}
-                    <div className="w-full lg:w-80 bg-slate-50 border-l border-slate-100 p-8 flex flex-col justify-between">
+                    <div className="w-full lg:w-80 bg-slate-50 border-t lg:border-t-0 lg:border-l border-slate-100 p-4 sm:p-6 lg:p-8 flex flex-col justify-between">
                         <div>
-                            <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
+                            <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-4 sm:mb-6 flex items-center gap-2">
                                 <MapPin size={14} /> Simulation Control
                             </h3>
 
-                            <div className="space-y-4">
+                            <div className="space-y-3 sm:space-y-4">
                                 <button
                                     onClick={runStep}
                                     disabled={phase === 'finished'}
-                                    className={`w-full py-4 rounded-2xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg active:scale-95 ${phase === 'finished'
+                                    className={`w-full py-3 sm:py-4 rounded-2xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg active:scale-95 text-sm sm:text-base ${phase === 'finished'
                                         ? 'bg-emerald-500 text-white shadow-emerald-100'
                                         : 'bg-blue-600 text-white hover:bg-blue-700 shadow-blue-100'
                                         }`}
@@ -381,7 +395,7 @@ const ScooterMap = () => {
 
                                 <button
                                     onClick={resetToLastSetup}
-                                    className="w-full py-4 rounded-2xl font-bold text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 transition-all flex items-center justify-center gap-2 active:scale-95 shadow-sm"
+                                    className="w-full py-3 sm:py-4 rounded-2xl font-bold text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 transition-all flex items-center justify-center gap-2 active:scale-95 shadow-sm text-sm sm:text-base"
                                     title="Reset to your custom layout"
                                 >
                                     <RotateCcw size={18} />
@@ -400,11 +414,11 @@ const ScooterMap = () => {
 
 
                             {/* Coordinate Editor */}
-                            <div className="mt-8">
-                                <div className="text-[10px] font-bold text-slate-400 uppercase mb-4 tracking-wider">Coordinates</div>
-                                <div className="max-h-80 overflow-y-auto pr-2 space-y-2 custom-scrollbar">
+                            <div className="mt-6 sm:mt-8">
+                                <div className="text-[10px] font-bold text-slate-400 uppercase mb-3 sm:mb-4 tracking-wider">Coordinates</div>
+                                <div className="max-h-60 sm:max-h-80 overflow-y-auto pr-2 space-y-2 custom-scrollbar">
                                     {scooters.map(s => (
-                                        <div key={s.id} className="p-3 bg-white rounded-xl border border-slate-200 text-xs shadow-sm">
+                                        <div key={s.id} className="p-2 sm:p-3 bg-white rounded-xl border border-slate-200 text-xs shadow-sm">
                                             <div className="flex items-center gap-2 font-bold mb-2">
                                                 <div className="w-2 h-2 rounded-full" style={{ backgroundColor: s.color }}></div>
                                                 Centroid {s.id}
@@ -438,7 +452,7 @@ const ScooterMap = () => {
                                         </div>
                                     ))}
                                     {houses.map(h => (
-                                        <div key={h.id} className="p-3 bg-white rounded-xl border border-slate-200 text-xs shadow-sm">
+                                        <div key={h.id} className="p-2 sm:p-3 bg-white rounded-xl border border-slate-200 text-xs shadow-sm">
                                             <div className="flex items-center justify-between gap-2 mb-2">
                                                 <span className="font-medium text-slate-600">{h.id}</span>
                                                 {phase === 'setup' && houses.length > 1 && (
@@ -493,10 +507,10 @@ const ScooterMap = () => {
                         </div>
 
 
-                        <div className="mt-8">
-                            <div className="p-4 rounded-2xl bg-slate-900 text-white shadow-xl">
+                        <div className="mt-6 sm:mt-8">
+                            <div className="p-3 sm:p-4 rounded-2xl bg-slate-900 text-white shadow-xl">
                                 <div className="text-[10px] font-bold text-slate-500 uppercase mb-1">Status</div>
-                                <p className="text-[11px] italic leading-relaxed text-slate-300">
+                                <p className="text-[10px] sm:text-[11px] italic leading-relaxed text-slate-300">
                                     {phase === 'setup' && "Drag assets to set up a scenario, then press Initialize."}
                                     {phase === 'assign' && "Points assigned. Next: Move centroids to the median coordinates."}
                                     {phase === 'update' && "Centroids moved. Next: Re-assign points."}
