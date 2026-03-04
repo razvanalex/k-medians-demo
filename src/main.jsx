@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react';
-import { RotateCcw, ChevronRight, Info, MapPin, RefreshCcw, Plus, Minus } from 'lucide-react';
+import { useState, useMemo, useEffect } from 'react';
+import { RotateCcw, ChevronRight, Info, MapPin, RefreshCcw, Plus, Minus, Moon, Sun } from 'lucide-react';
 
 
 const K_MEANS_COLORS = {
@@ -41,6 +41,20 @@ const ClusteringDemo = () => {
         points: DEFAULT_POINTS
     });
 
+    const [isDarkMode, setIsDarkMode] = useState(() => {
+        if (typeof window !== 'undefined') {
+            return window.matchMedia('(prefers-color-scheme: dark)').matches;
+        }
+        return false;
+    });
+
+    useEffect(() => {
+        if (isDarkMode) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    }, [isDarkMode]);
 
     // Dragging State
     const [draggedItem, setDraggedItem] = useState(null);
@@ -305,8 +319,8 @@ const ClusteringDemo = () => {
 
 
     return (
-        <div className="flex flex-col min-h-screen bg-slate-100 font-sans">
-            <div className="w-full max-w-7xl mx-auto bg-white sm:rounded-3xl shadow-2xl overflow-hidden border-0 sm:border sm:border-slate-200 sm:my-4">
+        <div className="flex flex-col min-h-screen font-sans bg-slate-100 dark:bg-slate-950 transition-colors duration-300">
+            <div className="w-full max-w-7xl mx-auto bg-white dark:bg-slate-900 sm:rounded-3xl shadow-2xl overflow-hidden border-0 sm:border sm:border-slate-200 dark:sm:border-slate-800 sm:my-4 transition-colors duration-300">
                 {/* Header */}
                 <div className="bg-slate-900 p-4 sm:p-6 md:p-8 text-white">
                     <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
@@ -316,9 +330,18 @@ const ClusteringDemo = () => {
                                 Drag points and centroids to configure the visualization. <span className="text-blue-400 font-bold">Reset</span> will return to your last configuration.
                             </p>
                         </div>
-                        <div className="flex flex-col items-start sm:items-end">
-                            <span className="text-xs uppercase tracking-widest text-slate-500 font-bold mb-1">Iteration</span>
-                            <span className="text-3xl sm:text-4xl font-black text-blue-500">{step}</span>
+                        <div className="flex flex-col items-start sm:items-end gap-2">
+                            <button
+                                onClick={() => setIsDarkMode(!isDarkMode)}
+                                className="p-2 rounded-full hover:bg-slate-800 transition-colors text-slate-300"
+                                title="Toggle Theme"
+                            >
+                                {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
+                            </button>
+                            <div className="flex flex-col items-end">
+                                <span className="text-xs uppercase tracking-widest text-slate-500 font-bold mb-1">Iteration</span>
+                                <span className="text-3xl sm:text-4xl font-black text-blue-500">{step}</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -327,9 +350,9 @@ const ClusteringDemo = () => {
                 {/* Main Interface */}
                 <div className="flex flex-col lg:flex-row">
                     {/* Map View */}
-                    <div className="flex-1 p-4 sm:p-6 bg-white relative min-h-[400px] sm:min-h-[500px]">
+                    <div className="flex-1 p-4 sm:p-6 bg-white dark:bg-slate-900 relative min-h-[400px] sm:min-h-[500px] transition-colors duration-300">
                         <div className="absolute top-4 sm:top-8 left-4 sm:left-10 z-10 flex flex-col gap-2">
-                            <div className="bg-white/90 backdrop-blur-md px-2 sm:px-3 py-1 sm:py-1.5 rounded-full border border-slate-200 text-[9px] sm:text-[10px] font-bold text-slate-500 flex items-center gap-1 sm:gap-2 shadow-sm">
+                            <div className="bg-white/90 dark:bg-slate-800/90 backdrop-blur-md px-2 sm:px-3 py-1 sm:py-1.5 rounded-full border border-slate-200 dark:border-slate-700 text-[9px] sm:text-[10px] font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1 sm:gap-2 shadow-sm">
                                 <Info size={10} className="text-blue-500 sm:w-3 sm:h-3" />
                                 <span className="hidden sm:inline">{phase === 'setup' ? "DRAG MODE: Ready to Start" : `LOCKED: Phase ${phase.toUpperCase()}`}</span>
                                 <span className="sm:hidden">{phase === 'setup' ? "DRAG MODE" : phase.toUpperCase()}</span>
@@ -417,7 +440,7 @@ const ClusteringDemo = () => {
 
 
                     {/* Controls Panel */}
-                    <div className="w-full lg:w-80 bg-slate-50 border-t lg:border-t-0 lg:border-l border-slate-100 p-4 sm:p-6 lg:p-8 flex flex-col justify-between">
+                    <div className="w-full lg:w-80 bg-slate-50 dark:bg-slate-900 border-t lg:border-t-0 lg:border-l border-slate-100 dark:border-slate-800 p-4 sm:p-6 lg:p-8 flex flex-col justify-between transition-colors duration-300">
                         <div>
                             <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-4 sm:mb-6 flex items-center gap-2">
                                 <MapPin size={14} /> Simulation Control
@@ -428,8 +451,8 @@ const ClusteringDemo = () => {
                                     onClick={runStep}
                                     disabled={phase === 'finished'}
                                     className={`w-full py-3 sm:py-4 rounded-2xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg active:scale-95 text-sm sm:text-base ${phase === 'finished'
-                                        ? 'bg-emerald-500 text-white shadow-emerald-100'
-                                        : 'bg-blue-600 text-white hover:bg-blue-700 shadow-blue-100'
+                                        ? 'bg-emerald-500 text-white shadow-emerald-100 dark:shadow-emerald-900/50'
+                                        : 'bg-blue-600 text-white hover:bg-blue-700 shadow-blue-100 dark:shadow-blue-900/50'
                                         }`}
                                 >
                                     {phase === 'finished' ? 'Converged' : (
@@ -443,7 +466,7 @@ const ClusteringDemo = () => {
 
                                 <button
                                     onClick={resetToLastSetup}
-                                    className="w-full py-3 sm:py-4 rounded-2xl font-bold text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 transition-all flex items-center justify-center gap-2 active:scale-95 shadow-sm text-sm sm:text-base"
+                                    className="w-full py-3 sm:py-4 rounded-2xl font-bold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all flex items-center justify-center gap-2 active:scale-95 shadow-sm text-sm sm:text-base"
                                     title="Reset to your custom layout"
                                 >
                                     <RotateCcw size={18} />
@@ -466,14 +489,14 @@ const ClusteringDemo = () => {
                                 <div className="text-[10px] font-bold text-slate-400 uppercase mb-3 sm:mb-4 tracking-wider">Coordinates</div>
                                 <div className="max-h-60 sm:max-h-80 overflow-y-auto pr-2 space-y-2 custom-scrollbar">
                                     {centroids.map(c => (
-                                        <div key={c.id} className="p-2 sm:p-3 bg-white rounded-xl border border-slate-200 text-xs shadow-sm">
-                                            <div className="flex items-center gap-2 font-bold mb-2">
+                                        <div key={c.id} className="p-2 sm:p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 text-xs shadow-sm transition-colors duration-300">
+                                            <div className="flex items-center gap-2 font-bold mb-2 dark:text-slate-200">
                                                 <div className="w-2 h-2 rounded-full" style={{ backgroundColor: c.color }}></div>
                                                 Centroid {c.id}
                                             </div>
                                             <div className="flex gap-2">
                                                 <div className="flex-1">
-                                                    <label className="text-[9px] text-slate-500">X</label>
+                                                    <label className="text-[9px] text-slate-500 dark:text-slate-400">X</label>
                                                     <input
                                                         type="number"
                                                         min="0"
@@ -481,11 +504,11 @@ const ClusteringDemo = () => {
                                                         value={c.x}
                                                         onChange={(e) => updateCentroidCoordinate(c.id, 'x', e.target.value)}
                                                         disabled={phase !== 'setup'}
-                                                        className="w-full px-2 py-1 border border-slate-300 rounded text-xs font-mono disabled:bg-slate-100 disabled:cursor-not-allowed"
+                                                        className="w-full px-2 py-1 border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200 rounded text-xs font-mono disabled:bg-slate-100 disabled:dark:bg-slate-800 disabled:cursor-not-allowed transition-colors"
                                                     />
                                                 </div>
                                                 <div className="flex-1">
-                                                    <label className="text-[9px] text-slate-500">Y</label>
+                                                    <label className="text-[9px] text-slate-500 dark:text-slate-400">Y</label>
                                                     <input
                                                         type="number"
                                                         min="0"
@@ -493,16 +516,16 @@ const ClusteringDemo = () => {
                                                         value={c.y}
                                                         onChange={(e) => updateCentroidCoordinate(c.id, 'y', e.target.value)}
                                                         disabled={phase !== 'setup'}
-                                                        className="w-full px-2 py-1 border border-slate-300 rounded text-xs font-mono disabled:bg-slate-100 disabled:cursor-not-allowed"
+                                                        className="w-full px-2 py-1 border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200 rounded text-xs font-mono disabled:bg-slate-100 disabled:dark:bg-slate-800 disabled:cursor-not-allowed transition-colors"
                                                     />
                                                 </div>
                                             </div>
                                         </div>
                                     ))}
                                     {points.map(p => (
-                                        <div key={p.id} className="p-2 sm:p-3 bg-white rounded-xl border border-slate-200 text-xs shadow-sm">
+                                        <div key={p.id} className="p-2 sm:p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 text-xs shadow-sm transition-colors duration-300">
                                             <div className="flex items-center justify-between gap-2 mb-2">
-                                                <span className="font-medium text-slate-600">{p.id}</span>
+                                                <span className="font-medium text-slate-600 dark:text-slate-300">{p.id}</span>
                                                 {phase === 'setup' && points.length > 1 && (
                                                     <button
                                                         onClick={() => removePoint(p.id)}
@@ -515,7 +538,7 @@ const ClusteringDemo = () => {
                                             </div>
                                             <div className="flex gap-2">
                                                 <div className="flex-1">
-                                                    <label className="text-[9px] text-slate-500">X</label>
+                                                    <label className="text-[9px] text-slate-500 dark:text-slate-400">X</label>
                                                     <input
                                                         type="number"
                                                         min="0"
@@ -523,11 +546,11 @@ const ClusteringDemo = () => {
                                                         value={p.x}
                                                         onChange={(e) => updatePointCoordinate(p.id, 'x', e.target.value)}
                                                         disabled={phase !== 'setup'}
-                                                        className="w-full px-2 py-1 border border-slate-300 rounded text-xs font-mono disabled:bg-slate-100 disabled:cursor-not-allowed"
+                                                        className="w-full px-2 py-1 border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200 rounded text-xs font-mono disabled:bg-slate-100 disabled:dark:bg-slate-800 disabled:cursor-not-allowed transition-colors"
                                                     />
                                                 </div>
                                                 <div className="flex-1">
-                                                    <label className="text-[9px] text-slate-500">Y</label>
+                                                    <label className="text-[9px] text-slate-500 dark:text-slate-400">Y</label>
                                                     <input
                                                         type="number"
                                                         min="0"
@@ -535,7 +558,7 @@ const ClusteringDemo = () => {
                                                         value={p.y}
                                                         onChange={(e) => updatePointCoordinate(p.id, 'y', e.target.value)}
                                                         disabled={phase !== 'setup'}
-                                                        className="w-full px-2 py-1 border border-slate-300 rounded text-xs font-mono disabled:bg-slate-100 disabled:cursor-not-allowed"
+                                                        className="w-full px-2 py-1 border border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200 rounded text-xs font-mono disabled:bg-slate-100 disabled:dark:bg-slate-800 disabled:cursor-not-allowed transition-colors"
                                                     />
                                                 </div>
                                             </div>
@@ -545,7 +568,7 @@ const ClusteringDemo = () => {
                                 {phase === 'setup' && (
                                     <button
                                         onClick={addPoint}
-                                        className="w-full mt-3 py-2 rounded-lg font-bold text-blue-600 bg-blue-50 border border-blue-200 hover:bg-blue-100 transition-colors flex items-center justify-center gap-2"
+                                        className="w-full mt-3 py-2 rounded-lg font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors flex items-center justify-center gap-2"
                                     >
                                         <Plus size={16} />
                                         Add Point
