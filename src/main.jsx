@@ -23,7 +23,7 @@ const ScooterMap = () => {
 
     const DEFAULT_SCOOTERS = [
         { id: 'A', x: 2, y: 2, color: K_MEANS_COLORS.A, label: 'Centroid A' },
-        { id: 'B', x: 1, y: 4, color: K_MEANS_COLORS.B, label: 'Centroid B' }
+        { id: 'B', x: 7, y: 6, color: K_MEANS_COLORS.B, label: 'Centroid B' }
     ];
 
 
@@ -78,9 +78,21 @@ const ScooterMap = () => {
     const runStep = () => {
         if (phase === 'setup') {
             // Before starting the algorithm, save the CURRENT state as the recovery point
+            // Save with explicit null clusters
             setLastSetup({
-                scooters: scooters.map(s => ({ ...s })),
-                houses: houses.map(h => ({ ...h, cluster: null }))
+                scooters: scooters.map(s => ({ 
+                    id: s.id, 
+                    x: s.x, 
+                    y: s.y, 
+                    color: s.color, 
+                    label: s.label 
+                })),
+                houses: houses.map(h => ({ 
+                    id: h.id, 
+                    x: h.x, 
+                    y: h.y, 
+                    cluster: null 
+                }))
             });
 
 
@@ -127,9 +139,23 @@ const ScooterMap = () => {
 
     const resetToLastSetup = () => {
         // Reverts to the configuration set before clicking "Start"
-        setScooters(lastSetup.scooters.map(s => ({ ...s })));
-        // Remove clustering info but keep positions
-        setHouses(lastSetup.houses.map(h => ({ ...h, cluster: null })));
+        // Create completely fresh copies to avoid any reference issues
+        const freshScooters = lastSetup.scooters.map(s => ({ 
+            id: s.id, 
+            x: s.x, 
+            y: s.y, 
+            color: s.color, 
+            label: s.label 
+        }));
+        const freshHouses = lastSetup.houses.map(h => ({ 
+            id: h.id, 
+            x: h.x, 
+            y: h.y, 
+            cluster: null  // Explicitly reset cluster assignment
+        }));
+        
+        setScooters(freshScooters);
+        setHouses(freshHouses);
         setStep(0);
         setPhase('setup');
     };
@@ -137,11 +163,26 @@ const ScooterMap = () => {
 
     const factoryReset = () => {
         // Reverts to the original hardcoded defaults
-        setScooters(DEFAULT_SCOOTERS.map(s => ({ ...s })));
-        setHouses(DEFAULT_HOUSES.map(h => ({ ...h, cluster: null })));
+        // Create completely fresh copies
+        const freshScooters = DEFAULT_SCOOTERS.map(s => ({ 
+            id: s.id, 
+            x: s.x, 
+            y: s.y, 
+            color: s.color, 
+            label: s.label 
+        }));
+        const freshHouses = DEFAULT_HOUSES.map(h => ({ 
+            id: h.id, 
+            x: h.x, 
+            y: h.y, 
+            cluster: null 
+        }));
+        
+        setScooters(freshScooters);
+        setHouses(freshHouses);
         setLastSetup({ 
-            scooters: DEFAULT_SCOOTERS.map(s => ({ ...s })), 
-            houses: DEFAULT_HOUSES.map(h => ({ ...h, cluster: null })) 
+            scooters: freshScooters.map(s => ({ ...s })), 
+            houses: freshHouses.map(h => ({ ...h })) 
         });
         setStep(0);
         setPhase('setup');
